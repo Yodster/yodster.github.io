@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>JS API Bookmarklet</title>
+
+
+</head>
+
+<body>
+    <a href="javascript:(function()%7Blet%20path%20%3D%20%2F(https%3A%5C%2F%5C%2F%5B%5E%5C.%5D%2B%5C.cloud%5C.extrahop%5C.com)%2Fi.exec(document.URL)%5B1%5D.split(%22.%22)%3Bpath.splice(1%2C0%2C%22api%22)%3Bpath%20%3D%20path.join(%22.%22)%3Bwindow.open(path%20%2B%20%22%2Foath2%2Ftoken%22)%7D)()">Rx API Redirect</a>
+</body>
+
+</html>
+
+<!-- bookmarklet code -->
+ <!-- let path = /(https:\/\/[^\.]+\.cloud\.extrahop\.com)/i.exec(document.URL)[1].split(".");
+    path.splice(1,0,"api");
+    path = path.join(".");
+    window.open(path + "/oath2/token"); -->
