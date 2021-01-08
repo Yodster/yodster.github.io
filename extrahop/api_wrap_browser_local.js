@@ -4,12 +4,15 @@
  * Updated by eugene on 12/28/18 for 7.5 endpoints
  * Updaed by eugene on 7/29/19 for 7.7 endpoints
  * updated by eugene on 1/15/19 for 7.9 endpoints
+ * updated by eugene on 8/26/20 for 8.1.3 endpoints
+ * updated by eugene on 1/8/21 for 8.3.0 endpoints and Rx 360 API compatibility
  */
 
-function ExtraHop(hostname, apiKey){
+function ExtraHop(hostname, apiKey=null, cloud_id=null, cloud_secret=null){
     this.hostname = hostname;
     this.apiKey = apiKey;
-
+    this.cloud_id = cloud_id
+    this.cloud_secret = cloud_secret
     // *************************************
     // *********** Activity Groups *********
     // *************************************
@@ -990,8 +993,30 @@ function ExtraHop(hostname, apiKey){
         return this._processResponse(_request);
     };
 
+    this.getAuthIdentityproviderPrivileges = function(providerID){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/auth/identityproviders/privileges";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + '/' + providerID.toString(), false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.patchAuthIdentityproviderPrivileges = function(providerID, body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/auth/identityproviders/privileges";
+
+        var _request = new XMLHttpRequest();
+        _request.open("PATCH", _uri + '/' + providerID.toString(), false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
     this.getAuthSamlsp = function(xml){
-        var _uri = "HTTPS://" + this.hostname + "/api/v1/auth/identityproviders",
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/auth/samlsp",
         _queryString = `?xml=${!!xml}`;
 
         var _request = new XMLHttpRequest();
@@ -1062,6 +1087,21 @@ function ExtraHop(hostname, apiKey){
     };
 
     // *************************************
+    // ************** Cloud ****************
+    // *************************************
+
+    this.postCloudConnect = function(body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/cloud/connect";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    // *************************************
     // ********** Custom Devices ***********
     // *************************************
 
@@ -1115,7 +1155,6 @@ function ExtraHop(hostname, apiKey){
         return this._processResponse(_request);
     };
 
-    // deprecated
     this.patchCustomDevice = function(customdeviceID, body){
         var _uri = "HTTPS://" + this.hostname + "/api/v1/customdevices";
 
@@ -2057,6 +2096,63 @@ function ExtraHop(hostname, apiKey){
         return this._processResponse(_request);
     };
 
+    this.getDeviceDnsnames = function(deviceID, from, until){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/devices/" + deviceID + "/dnsnames",
+            _queryString = "";
+
+        if(from){
+            _queryString += `from=${from}`;
+        }
+
+        if(until){
+            if(_queryString){
+                _queryString += `&`;
+            }
+
+            _queryString += `until=${until}`;
+        }
+
+        if(_queryString){
+            _queryString = "?" + _queryString;
+        }
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + _queryString , false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getDeviceIPaddrs = function(deviceID, from, until){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/devices/" + deviceID + "/ipaddrs",
+            _queryString = "";
+
+        if(from){
+            _queryString += `from=${from}`;
+        }
+
+        if(until){
+            if(_queryString){
+                _queryString += `&`;
+            }
+
+            _queryString += `until=${until}`;
+        }
+
+        if(_queryString){
+            _queryString = "?" + _queryString;
+        }
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + _queryString , false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+
     this.getDeviceSoftware = function(deviceID, from, until){
         var _uri = "HTTPS://" + this.hostname + "/api/v1/devices/" + deviceID + "/software",
             _queryString = "";
@@ -2461,6 +2557,29 @@ function ExtraHop(hostname, apiKey){
         return this._processResponse(_request);
     };
 
+    this.putExtrahopDetectionsAccess = function(body){
+      var _uri = "HTTPS://" + this.hostname + "/api/v1/extrahop/detections/access";
+
+      var _request = new XMLHttpRequest();
+      _request.open("PUT", _uri, false);
+      this._setHeaders(_request);
+      _request.send(JSON.stringify(body));
+
+      return this._processResponse(_request);
+    }
+
+    this.getExtrahopEdition = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/extrahop/edition";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    // these next two seem to be gone form the rest api explorer.. sure which i remembered what they did.
     this.getExtrahopCluster = function(){
         var _uri = "HTTPS://" + this.hostname + "/api/v1/extrahop/cluster";
 
@@ -2546,6 +2665,17 @@ function ExtraHop(hostname, apiKey){
 
         var _request = new XMLHttpRequest();
         _request.open("POST", _uri + process + "/restart", false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.postExtrahopRestart = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/extrahop/restart";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
         this._setHeaders(_request);
         _request.send();
 
@@ -3272,6 +3402,256 @@ function ExtraHop(hostname, apiKey){
         _request.open("PATCH", _uri + '/' + nodeID.toString(), false);
         this._setHeaders(_request);
         _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    // *************************************
+    // *********** Observations ************
+    // *************************************
+
+    this.postObservationsAssociatedipaddrs = function(body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/observations/associatedipaddrs";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    // *************************************
+    // ********* Open Data Streams *********
+    // *************************************
+
+    this.getODStargets = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetsHTTP = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/http";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.postODStargetHTTP = function(body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/http";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    this.deleteODStargetHTTP = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/http";
+
+        var _request = new XMLHttpRequest();
+        _request.open("DELETE", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetHTTP = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/http";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetsKafka = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/kafka";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.postODStargetKafka = function(body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/kafka";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    this.deleteODStargetKafka = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/kafka";
+
+        var _request = new XMLHttpRequest();
+        _request.open("DELETE", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetKafka = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/kafka";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetsMongoDB = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/mongodb";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.postODStargetMongoDB = function(body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/mongodb";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    this.deleteODStargetMongoDB = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/mongodb";
+
+        var _request = new XMLHttpRequest();
+        _request.open("DELETE", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetMongoDB = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/mongodb";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetsRaw = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/raw";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.postODStargetRaw = function(body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/raw";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    this.deleteODStargetRaw = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/raw";
+
+        var _request = new XMLHttpRequest();
+        _request.open("DELETE", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetRaw = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/raw";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetsSyslog = function(){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/syslog";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.postODStargetSyslog = function(body){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/syslog";
+
+        var _request = new XMLHttpRequest();
+        _request.open("POST", _uri, false);
+        this._setHeaders(_request);
+        _request.send(JSON.stringify(body));
+
+        return this._processResponse(_request);
+    };
+
+    this.deleteODStargetSyslog = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/syslog";
+
+        var _request = new XMLHttpRequest();
+        _request.open("DELETE", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
+
+        return this._processResponse(_request);
+    };
+
+    this.getODStargetSyslog = function(ODS_target_name){
+        var _uri = "HTTPS://" + this.hostname + "/api/v1/odstargets/syslog";
+
+        var _request = new XMLHttpRequest();
+        _request.open("GET", _uri + "/" + ODS_target_name, false);
+        this._setHeaders(_request);
+        _request.send();
 
         return this._processResponse(_request);
     };
@@ -4658,6 +5038,19 @@ function ExtraHop(hostname, apiKey){
     // *************** HELPERS *************
     // *************************************
 
+    this.toggleDetectionTrigger = function(triggerUUID, enabled){
+      var _uri = "HTTPS://" + this.hostname + "/api/v1/cloudtriggers";
+
+      var body = {uuid: triggerUUID, enabled: enabled};
+
+      var _request = new XMLHttpRequest();
+      _request.open("PATCH", _uri, false);
+      this._setHeaders(_request);
+      _request.send(JSON.stringify(body));
+
+      return this._processResponse(_request);
+    }
+
     this._processResponse = function(_response){
 
         var _returnObject = {};
@@ -4674,16 +5067,68 @@ function ExtraHop(hostname, apiKey){
             header = header.split(": ");
             if(header.length == 2){
                 _returnObject.headers[header[0]] = header[1];
+                if(header[0] === "location"){
+                  // grab the id of the created object from the location header
+                  let split_location = header[1].split("/");
+                  _returnObject.created_id = parseInt(split_location[split_location.length - 1]);
+                }
             }
         })
 
         return _returnObject;
     };
+
+    this._update_token = function(){
+      let auth_token = btoa(`${this.cloud_id}:${this.cloud_secret}`),
+          _request = new XMLHttpRequest(),
+          _uri = "HTTPS://" + this.hostname + "/oauth2/token";
+
+      _request.open("POST", _uri, false);
+      _request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      _request.setRequestHeader("Authorization","Basic " + auth_token);
+      _request.send("grant_type=client_credentials");
+
+       let response = this._processResponse(_request);
+       if(!(response.status == 200)){
+           console.log(`Error getting token\n${response.body}`)
+       }else{
+           this.access_token = response.JSON.access_token;
+           console.log("Success fetching new token.");
+       }
+    }
+
     this._setHeaders = function(_request){
         _request.setRequestHeader("Accept","application/json");
         _request.setRequestHeader("Content-Type", "application/json");
-        _request.setRequestHeader("Authorization","ExtraHop apikey=" + this.apiKey);
+        if(this.access_token){
+            _request.setRequestHeader("Authorization","Bearer " + this.access_token);
+        }else{
+            _request.setRequestHeader("Authorization","ExtraHop apikey=" + this.apiKey);
+        }
     };
+
+    this.saveText = function(data, filename){
+       if(!data) {
+            console.error('Console.save: No data')
+            return;
+        }
+
+        if(!filename) filename = prompt("Please enter a filename") || "default.txt";
+
+        if(typeof data === "object"){
+            data = JSON.stringify(data, undefined, 4)
+        }
+
+        var blob = new Blob([data], {type: 'text/json'}),
+            e    = document.createEvent('MouseEvents'),
+            a    = document.createElement('a')
+
+        a.download = filename
+        a.href = window.URL.createObjectURL(blob)
+        a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':')
+        e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+        a.dispatchEvent(e)
+    }
 }
 
 if (/\/admin\/api\//i.test(document.URL)) {
@@ -4700,12 +5145,27 @@ if (/\/admin\/api\//i.test(document.URL)) {
     if (key_found) {
         var EDA = new ExtraHop(window.location.hostname,found_key);
         if (EDA.getExtrahop().status == 200) {
-            alert("Success!!");
+            console.log("Success!!");
         } else {
             alert("There was a problem with the API key or this is being run in the wrong scope.");
         }
     }
-} else {
+} else if(/[^\.]+\.cloud\.extrahop\.com/i.test(document.URL)){
+    let input = prompt("Please enter the api ID and secret in the format\nID:Secret");
+    input = input.split(",");
+
+    const hostname = window.location.hostname;
+    const cloud_id = input[0]
+    const cloud_secret = input[1]
+
+    var EDA = new ExtraHop(hostname,null,cloud_id,cloud_secret);
+    EDA._update_token()
+    if(EDA.access_token){
+        console.log("Connected to 360 API!!");
+    }
+
+
+}else {
     var EDA = new ExtraHop(window.location.hostname,prompt("Please enter the API key"));
     if (EDA.getExtrahop().status == 200) {
         alert("Success!!");
